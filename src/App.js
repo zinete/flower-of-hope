@@ -1,5 +1,3 @@
-
-import './App.css';
 import React from 'react';
 import { ethers } from 'ethers';
 import { ThemeSwitch } from "./components";
@@ -10,6 +8,7 @@ import Flower from './contracts/config/index.js'
 function App() {
   const [currentAccount, setCurrentAccount] = React.useState(null);
   const [tokenJson, setTokenJson] = React.useState([]);
+
 
 
   const checkWalletIsConnected = async () => {
@@ -52,17 +51,13 @@ function App() {
 
 
   const mintNftHandler = async () => {
-
     try {
       const { ethereum } = window
       if (ethereum) {
         const provider = new ethers.providers.Web3Provider(ethereum);
         const signer = provider.getSigner();
         const nftContract = new ethers.Contract(Flower.contract.flower, Flower.abi.Flower, signer);
-        console.log(nftContract, 'nftContract')
-
         const tx = await nftContract.mintFlower()
-        console.log("Mining... please wait");
         tx.wait()
       }
 
@@ -79,9 +74,9 @@ function App() {
         const provider = new ethers.providers.Web3Provider(ethereum);
         const signer = provider.getSigner();
         const nftContract = new ethers.Contract(Flower.contract.flower, Flower.abi.Flower, signer);
-
+        const balanceOf = await nftContract.balanceOf(currentAccount)
         const collectibleUpdate = [];
-        for (let tokenIndex = 1; tokenIndex < 10; tokenIndex++) {
+        for (let tokenIndex = 0; tokenIndex < Number(balanceOf); tokenIndex++) {
           try {
             console.log("GEtting token index", tokenIndex);
 
@@ -130,52 +125,36 @@ function App() {
   React.useEffect(() => {
     checkWalletIsConnected()
     renderNFT()
-  }, [currentAccount])
+  }, [currentAccount, renderNFT])
   return (
-    <div className="App">
-      <header className="App-header">
+    <div className="mx-auto container">
+      <header>
         <ThemeSwitch />
-
-        <h3>FLOWER OF HOPE</h3>
-        <div>
-          {currentAccount ? mintNftButton() : connectWalletButton()}
+        <div className="mt-4 flex items-center flex-col">
+          <h3>FLOWER OF HOPE</h3>
+          <div className="bg-colorA58-light cursor-pointer rounded px-5 py-2 my-2 text-colorFFF-light">
+            {currentAccount ? mintNftButton() : connectWalletButton()}
+          </div>
+          <p>{currentAccount}</p>
         </div>
-        <p>{currentAccount}</p>
-        <div style={{
-          gap: '20px',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(6, 1fr)',
-        }}>
-
+        <div className="grid grid-cols-6 gap-10 mt-10 ">
           {
             !tokenJson.length ? <p style={{ textAlign: 'center' }}>加载中。。。</p> : <>
               {
                 tokenJson.map((items, index) => (
-                  <div key={'token' + index} style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-
-                  }}>
-                    <div style={{ display: 'flex', width: '200px', flexDirection: 'column' }}>
+                  <div key={'token' + index} className="bg-slate-700 text-colorFFF-light p-10 cursor-pointer">
+                    <div>
                       <span>{items.name}</span>
                       <span style={{}}>{items.description}</span>
                     </div>
-                    <img src={items.image} alt={items.name} style={{
-                      width: '200px',
-                      backgroundColor: '#00000010',
-                      marginTop: '20px'
-                    }} />
+                    <img src={items.image} alt={items.name} />
 
                   </div>
                 ))
               }
             </>
           }
-
-
         </div>
-
-
       </header>
     </div>
   );
